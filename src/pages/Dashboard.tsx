@@ -1,17 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Shield, PhoneOff } from 'lucide-react';
+import { Search, Shield, PhoneOff, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import ContactCard from '@/components/ContactCard';
 import Header from '@/components/Header';
 import { useContacts } from '@/context/ContactContext';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filteredContacts, setFilteredContacts] = useState<Array<any>>([]);
-  const { contacts, toggleBlock } = useContacts();
+  const [isNativeApp, setIsNativeApp] = useState<boolean>(false);
+  const { contacts, toggleBlock, loadRealContacts } = useContacts();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -19,6 +22,11 @@ const Dashboard = () => {
     if (!isAuthenticated) {
       navigate('/');
     }
+    
+    // Check if we're in a Capacitor or Cordova environment
+    const isMobileApp = typeof (window as any).Capacitor !== 'undefined' || 
+                          typeof (window as any).cordova !== 'undefined';
+    setIsNativeApp(isMobileApp);
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
@@ -34,6 +42,18 @@ const Dashboard = () => {
       setFilteredContacts(filtered);
     }
   }, [searchQuery, contacts]);
+
+  const handleLoadContacts = async () => {
+    try {
+      if (loadRealContacts) {
+        toast.info("Loading your contacts...");
+        await loadRealContacts();
+      }
+    } catch (error) {
+      console.error("Failed to load contacts:", error);
+      toast.error("Could not load your contacts");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-secure-black pb-6">
@@ -52,6 +72,19 @@ const Dashboard = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
+        
+        {isNativeApp && loadRealContacts && (
+          <div className="mb-4">
+            <Button 
+              onClick={handleLoadContacts} 
+              variant="outline" 
+              className="w-full glass-card text-secure-green border-secure-green/30 hover:bg-secure-green/10"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Load Real Contacts
+            </Button>
+          </div>
+        )}
 
         {filteredContacts.length === 0 ? (
           <div className="glass-card p-6 flex flex-col items-center justify-center">
@@ -62,7 +95,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredContacts.map((contact, index) => (
+            {filteredContacts.map((contact) => (
               <ContactCard
                 key={contact.id}
                 contact={contact}

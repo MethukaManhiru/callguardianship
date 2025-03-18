@@ -1,6 +1,5 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { ContactContextType, Contact } from "@/types";
+import { ContactContextType, Contact, DeviceContact } from "@/types";
 import { mockContacts } from "@/lib/mockData";
 import { toast } from "sonner";
 
@@ -9,8 +8,14 @@ const ContactContext = createContext<ContactContextType | undefined>(undefined);
 export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [blockedContacts, setBlockedContacts] = useState<Contact[]>([]);
+  const [isNativeApp, setIsNativeApp] = useState<boolean>(false);
 
-  // Load contacts and blocked status from localStorage or use mock data
+  useEffect(() => {
+    const isMobileApp = typeof (window as any).Capacitor !== 'undefined' || 
+                          typeof (window as any).cordova !== 'undefined';
+    setIsNativeApp(isMobileApp);
+  }, []);
+
   useEffect(() => {
     const savedContacts = localStorage.getItem("secureblock_contacts");
     if (savedContacts) {
@@ -23,9 +28,15 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (savedBlockedContacts) {
       setBlockedContacts(JSON.parse(savedBlockedContacts));
     }
-  }, []);
 
-  // Save contacts and blocked status to localStorage when they change
+    if (isNativeApp) {
+      loadRealContacts().catch(error => {
+        console.error("Failed to load contacts:", error);
+        toast.error("Could not load your contacts. Using demo data instead.");
+      });
+    }
+  }, [isNativeApp]);
+
   useEffect(() => {
     if (contacts.length > 0) {
       localStorage.setItem("secureblock_contacts", JSON.stringify(contacts));
@@ -36,24 +47,31 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [contacts, blockedContacts]);
 
+  const loadRealContacts = async (): Promise<void> => {
+    try {
+      toast.info("In a real device, this would load your actual contacts");
+      console.log("In a real app, we would load device contacts here");
+    } catch (error) {
+      console.error("Error loading contacts:", error);
+      throw error;
+    }
+  };
+
   const toggleBlock = (contactId: string) => {
     setContacts(prevContacts => 
       prevContacts.map(contact => {
         if (contact.id === contactId) {
           const newBlockedState = !contact.isBlocked;
           
-          // Show appropriate notification
           if (newBlockedState) {
             toast.success(`${contact.name} has been blocked`);
             
-            // Add to blocked contacts if newly blocked
             if (!blockedContacts.some(c => c.id === contact.id)) {
               setBlockedContacts(prev => [...prev, {...contact, isBlocked: true}]);
             }
           } else {
             toast.info(`${contact.name} has been unblocked`);
             
-            // Remove from blocked contacts if unblocked
             setBlockedContacts(prev => prev.filter(c => c.id !== contact.id));
           }
           
@@ -76,7 +94,13 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <ContactContext.Provider value={{ contacts, blockedContacts, toggleBlock, searchContacts }}>
+    <ContactContext.Provider value={{ 
+      contacts, 
+      blockedContacts, 
+      toggleBlock, 
+      searchContacts,
+      loadRealContacts
+    }}>
       {children}
     </ContactContext.Provider>
   );
