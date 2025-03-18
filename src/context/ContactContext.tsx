@@ -71,24 +71,32 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // we need to ensure the Capacitor plugins are only accessed in mobile context
       if (isNativeApp) {
         try {
-          const { Contacts } = await import('@capacitor/contacts');
+          const { Contacts } = await import('@capacitor-community/contacts');
           
           // Request permissions
-          const permissionStatus = await Contacts.requestPermissions();
+          const permissionStatus = await Contacts.getPermissions();
           
-          if (permissionStatus.contacts === 'granted') {
-            const result = await Contacts.getContacts();
+          if (permissionStatus.granted) {
+            const result = await Contacts.getContacts({
+              projection: {
+                name: true,
+                phones: true,
+                image: true
+              }
+            });
             
             if (result.contacts.length > 0) {
               // Map the Capacitor contacts to our app's contact format
               const deviceContacts: Contact[] = result.contacts.map((contact) => {
                 return {
                   id: contact.contactId || Math.random().toString(),
-                  name: contact.displayName || 'Unknown',
-                  phone: contact.phoneNumbers && contact.phoneNumbers.length > 0 
-                    ? contact.phoneNumbers[0].number 
+                  name: contact.name?.display || 'Unknown',
+                  phone: contact.phones && contact.phones.length > 0 
+                    ? contact.phones[0].number 
                     : 'No phone number',
-                  avatar: contact.photoThumbnail || 'https://i.pravatar.cc/150?u=' + contact.contactId,
+                  avatar: contact.image?.base64String 
+                    ? `data:image/jpeg;base64,${contact.image.base64String}` 
+                    : 'https://i.pravatar.cc/150?u=' + contact.contactId,
                   isBlocked: false
                 };
               });

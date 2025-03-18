@@ -36,8 +36,17 @@ export interface ContactContextType {
 }
 
 export interface DeviceContact {
-  id: string;
-  displayName: string;
-  phoneNumbers: string[];
-  photoUri?: string;
+  contactId: string;
+  name?: {
+    display: string;
+    given?: string;
+    family?: string;
+  };
+  phones?: {
+    type: string;
+    number: string;
+  }[];
+  image?: {
+    base64String?: string;
+  };
 }
