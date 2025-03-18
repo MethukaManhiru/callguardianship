@@ -1,11 +1,34 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Shield } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // If already authenticated, redirect to dashboard
+    if (isAuthenticated) {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Redirect to passcode entry after 2 seconds
+    const timer = setTimeout(() => {
+      navigate('/passcode');
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [navigate, isAuthenticated]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-secure-black flex flex-col items-center justify-center p-4">
+      <div className="flex flex-col items-center animate-fade-in">
+        <Shield className="w-16 h-16 text-white mb-6 animate-pulse-soft" />
+        <h1 className="text-2xl font-semibold text-white mb-2">SecureBlock</h1>
+        <p className="text-gray-400 text-center">Welcome to SecureBlock</p>
       </div>
     </div>
   );
