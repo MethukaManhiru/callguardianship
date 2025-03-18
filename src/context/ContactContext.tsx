@@ -73,8 +73,8 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
           const { Contacts } = await import('@capacitor-community/contacts');
           
-          // Request permissions
-          const permissionStatus = await Contacts.getPermissions();
+          // Request permissions - using requestPermissions() instead of getPermissions()
+          const permissionStatus = await Contacts.requestPermissions();
           
           if (permissionStatus.granted) {
             const result = await Contacts.getContacts({
