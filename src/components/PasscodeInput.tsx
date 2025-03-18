@@ -28,11 +28,8 @@ const PasscodeInput: React.FC<PasscodeInputProps> = ({
       return;
     }
     
-    if (e.key === "Backspace") {
-      setPasscode(prev => prev.slice(0, -1));
-    } else if (/^[0-9]$/.test(e.key) && passcode.length < length) {
-      setPasscode(prev => prev + e.key);
-    }
+    // Only process key events here, don't update the passcode
+    // The actual update will happen in the onChange handler
   };
   
   // Call onComplete when all digits are entered
@@ -69,9 +66,9 @@ const PasscodeInput: React.FC<PasscodeInputProps> = ({
             <div
               key={index}
               className={cn(
-                "passcode-digit",
-                passcode.length > index && "filled",
-                focused && passcode.length === index && "ring-2 ring-secure-green"
+                "w-12 h-12 border-2 border-white/30 rounded-lg flex items-center justify-center text-xl text-white bg-white/10 backdrop-blur-sm",
+                passcode.length > index && "border-secure-green bg-secure-green/10",
+                focused && passcode.length === index && "border-secure-green ring-2 ring-secure-green/50"
               )}
             >
               {passcode.length > index ? "•" : ""}
