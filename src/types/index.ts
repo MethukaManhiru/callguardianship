@@ -31,7 +31,8 @@ export interface ContactContextType {
   blockedContacts: Contact[];
   toggleBlock: (contactId: string) => void;
   searchContacts: (query: string) => Contact[];
-  loadRealContacts?: () => Promise<void>; // Added method to load real contacts
+  loadRealContacts?: () => Promise<void>;
+  isLoading?: boolean;
 }
 
 export interface DeviceContact {
