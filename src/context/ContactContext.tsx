@@ -71,8 +71,8 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
           // Import the Contacts plugin from @anuradev/capacitor-contacts
           const { Contacts } = await import('@anuradev/capacitor-contacts');
           
-          // Request permissions - according to the npm docs, we should use requestPermission
-          const permissionStatus = await Contacts.requestPermission();
+          // Request permissions - use requestPermissions (plural) instead of requestPermission
+          const permissionStatus = await Contacts.requestPermissions();
           console.log("Permission status:", permissionStatus);
           
           if (permissionStatus.granted) {
