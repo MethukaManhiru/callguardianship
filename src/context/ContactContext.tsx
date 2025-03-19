@@ -75,8 +75,8 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
           const permissionStatus = await Contacts.requestPermissions();
           console.log("Permission status:", permissionStatus);
           
-          // Check if permission is granted - according to @anuradev/capacitor-contacts documentation
-          if (permissionStatus && permissionStatus.granted) {
+          // Check if permission is granted based on the PermissionStatus type from the plugin
+          if (permissionStatus && permissionStatus.contacts === 'granted') {
             // Fetch all contacts using the plugin
             const result = await Contacts.getContacts();
             console.log("Contacts result:", result);
