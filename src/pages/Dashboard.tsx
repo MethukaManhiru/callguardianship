@@ -14,7 +14,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filteredContacts, setFilteredContacts] = useState<Array<any>>([]);
   const [isNativeApp, setIsNativeApp] = useState<boolean>(false);
-  const { contacts, toggleBlock, loadRealContacts } = useContacts();
+  const { contacts, toggleBlock, loadRealContacts, isLoading } = useContacts();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -79,9 +79,19 @@ const Dashboard = () => {
               onClick={handleLoadContacts} 
               variant="outline" 
               className="w-full glass-card text-secure-green border-secure-green/30 hover:bg-secure-green/10"
+              disabled={isLoading}
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Load Real Contacts
+              {isLoading ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-secure-green border-t-transparent"></div>
+                  Loading Contacts...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Load Real Contacts
+                </>
+              )}
             </Button>
           </div>
         )}

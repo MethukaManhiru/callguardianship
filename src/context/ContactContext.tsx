@@ -73,10 +73,11 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
           const { Contacts } = await import('@capacitor-community/contacts');
           
-          // Request permissions - using requestPermissions() instead of getPermissions()
+          // Request permissions
           const permissionStatus = await Contacts.requestPermissions();
           
-          if (permissionStatus.granted) {
+          // In @capacitor-community/contacts, the permission status has different structure
+          if (permissionStatus && permissionStatus.contacts === 'granted') {
             const result = await Contacts.getContacts({
               projection: {
                 name: true,
@@ -87,7 +88,7 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
             
             if (result.contacts.length > 0) {
               // Map the Capacitor contacts to our app's contact format
-              const deviceContacts: Contact[] = result.contacts.map((contact) => {
+              const deviceContacts: Contact[] = result.contacts.map((contact: DeviceContact) => {
                 return {
                   id: contact.contactId || Math.random().toString(),
                   name: contact.name?.display || 'Unknown',
