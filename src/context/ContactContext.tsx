@@ -68,15 +68,17 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       if (isNativeApp) {
         try {
-          // Use the @anuradev/capacitor-contacts plugin instead
+          // Import the Contacts plugin from @anuradev/capacitor-contacts
           const { Contacts } = await import('@anuradev/capacitor-contacts');
           
-          // Request permissions
-          const permissionStatus = await Contacts.getPermissions();
+          // Request permissions - according to the npm docs, we should use requestPermission
+          const permissionStatus = await Contacts.requestPermission();
+          console.log("Permission status:", permissionStatus);
           
           if (permissionStatus.granted) {
-            // Fetch all contacts using the new plugin
+            // Fetch all contacts using the plugin
             const result = await Contacts.getContacts();
+            console.log("Contacts result:", result);
             
             if (result && result.contacts && result.contacts.length > 0) {
               // Map the contacts to our app's contact format
