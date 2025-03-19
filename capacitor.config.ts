@@ -10,7 +10,9 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   plugins: {
-    // Add any additional plugin configurations here
+    Contacts: {
+      androidPermissions: ['android.permission.READ_CONTACTS']
+    }
   }
 };
 

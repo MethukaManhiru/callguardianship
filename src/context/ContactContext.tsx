@@ -66,54 +66,48 @@ export const ContactProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const loadRealContacts = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      // In a real mobile app with Capacitor, we'd use the Contacts plugin
-      // As this code will be executed in both web and mobile environments,
-      // we need to ensure the Capacitor plugins are only accessed in mobile context
       if (isNativeApp) {
         try {
-          const { Contacts } = await import('@capacitor-community/contacts');
+          // Use the @anuradev/capacitor-contacts plugin instead
+          const { Contacts } = await import('@anuradev/capacitor-contacts');
           
           // Request permissions
-          const permissionStatus = await Contacts.requestPermissions();
+          const permissionStatus = await Contacts.getPermissions();
           
-          // In @capacitor-community/contacts, the permission status has different structure
-          if (permissionStatus && permissionStatus.contacts === 'granted') {
-            const result = await Contacts.getContacts({
-              projection: {
-                name: true,
-                phones: true,
-                image: true
-              }
-            });
+          if (permissionStatus.granted) {
+            // Fetch all contacts using the new plugin
+            const result = await Contacts.getContacts();
             
-            if (result.contacts.length > 0) {
-              // Map the Capacitor contacts to our app's contact format
-              const deviceContacts: Contact[] = result.contacts.map((contact: DeviceContact) => {
+            if (result && result.contacts && result.contacts.length > 0) {
+              // Map the contacts to our app's contact format
+              const deviceContacts: Contact[] = result.contacts.map((contact: any) => {
                 return {
-                  id: contact.contactId || Math.random().toString(),
-                  name: contact.name?.display || 'Unknown',
-                  phone: contact.phones && contact.phones.length > 0 
-                    ? contact.phones[0].number 
+                  id: contact.contactId || contact.id || Math.random().toString(),
+                  name: contact.displayName || contact.givenName || 'Unknown',
+                  phone: contact.phoneNumbers && contact.phoneNumbers.length > 0 
+                    ? contact.phoneNumbers[0].number 
                     : 'No phone number',
-                  avatar: contact.image?.base64String 
-                    ? `data:image/jpeg;base64,${contact.image.base64String}` 
-                    : 'https://i.pravatar.cc/150?u=' + contact.contactId,
+                  avatar: contact.photoThumbnail 
+                    ? `data:image/jpeg;base64,${contact.photoThumbnail}` 
+                    : 'https://i.pravatar.cc/150?u=' + (contact.contactId || contact.id),
                   isBlocked: false
                 };
               });
               
               setContacts(deviceContacts);
               toast.success(`Loaded ${deviceContacts.length} contacts from your device`);
+              console.log("Loaded contacts:", deviceContacts);
             } else {
               toast.warning("No contacts found on your device");
               setContacts(mockContacts);
             }
           } else {
+            console.log("Permission denied for contacts");
             toast.error("Permission to access contacts was denied");
             setContacts(mockContacts);
           }
         } catch (error) {
-          console.error("Error accessing Capacitor Contacts plugin:", error);
+          console.error("Error accessing @anuradev/capacitor-contacts plugin:", error);
           toast.error("Error accessing your contacts");
           setContacts(mockContacts);
         }
